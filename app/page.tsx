@@ -1,5 +1,6 @@
 // app/page.tsx
 import Link from "next/link";
+import { ChatWidget } from "@/components/ChatWidget";
 
 const highlights = [
   "Senior Python & data engineering",
@@ -20,6 +21,7 @@ const techStack = [
 
 export default function HomePage() {
   return (
+    <>
     <div className="space-y-16">
       {/* Hero */}
       <section className="grid gap-10 pt-6 md:grid-cols-[1.3fr,1fr] md:items-center">
@@ -101,6 +103,11 @@ export default function HomePage() {
         />
       </section>
     </div>
+
+     {/* Chat widget at bottom-right */}
+      <ChatWidget />
+
+    </>
   );
 }
 
