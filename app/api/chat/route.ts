@@ -26,7 +26,7 @@ ${summary}
 ## LinkedIn Profile:
 ${linkedin}
 
-With this context, please chat with the user, always staying in character as ${name}.
+If you don't know the answer, say so.
 `;
 
 type ChatMessage = {
@@ -35,42 +35,41 @@ type ChatMessage = {
 };
 
 export async function POST(req: Request) {
-  try {
-    const body = await req.json();
-    const { message, history = [] } = body as {
-      message: string;
-      history?: ChatMessage[];
-    };
+  const apiKey = process.env.OPENAI_API_KEY;
 
-    const messages: ChatMessage[] = [
-      { role: "system", content: systemPrompt },
-      ...history,
-      { role: "user", content: message },
-    ];
-
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages,
-    });
-
-    const reply = completion.choices[0]?.message?.content ?? "";
-
+  if (!apiKey) {
+    console.error("Missing OPENAI_API_KEY in environment");
     return new Response(
       JSON.stringify({
-        reply,
-      }),
-      {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      }
-    );
-  } catch (err) {
-    console.error("Chat API error", err);
-    return new Response(
-      JSON.stringify({
-        error: "Something went wrong talking to the AI assistant.",
+        error: "Server is not configured correctly. Please try again later.",
       }),
       { status: 500, headers: { "Content-Type": "application/json" } }
     );
   }
+
+  const openai = new OpenAI({ apiKey });
+
+  const body = await req.json();
+  const { message, history = [] } = body as {
+    message: string;
+    history?: ChatMessage[];
+  };
+
+  const messages: ChatMessage[] = [
+    { role: "system", content: systemPrompt },
+    ...history,
+    { role: "user", content: message },
+  ];
+
+  const completion = await openai.chat.completions.create({
+    model: "gpt-4o-mini",
+    messages,
+  });
+
+  const reply = completion.choices[0]?.message?.content ?? "";
+
+  return new Response(JSON.stringify({ reply }), {
+    status: 200,
+    headers: { "Content-Type": "application/json" },
+  });
 }
